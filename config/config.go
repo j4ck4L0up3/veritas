@@ -13,6 +13,7 @@ var config Config
 type Config struct {
 	IP        string    `yaml:"ip"`
 	Port      string    `yaml:"port"`
+	UploadTTL string    `yaml:"upload_ttl"`
 	Locations Locations `yaml:"locations"`
 }
 
@@ -47,6 +48,12 @@ func load() error {
 	return nil
 }
 
+func must(f func() error) {
+	if err := f(); err != nil {
+		panic(err)
+	}
+}
+
 const (
 	VERITAS_DB_PATH     = "VERITAS_DB_PATH"
 	VERITAS_BIN_PATH    = "VERITAS_BIN_PATH"
@@ -70,16 +77,13 @@ func setOverrides() {
 	if env := os.Getenv(VERITAS_UPLOAD_PATH); env != "" {
 		config.Locations.UploadPath = env
 	}
+	if env := os.Getenv(VERITAS_UPLOAD_TTL); env != "" {
+		config.UploadTTL = env
+	}
 	if env := os.Getenv(VERITAS_IP); env != "" {
 		config.IP = env
 	}
 	if env := os.Getenv(VERITAS_PORT); env != "" {
 		config.Port = env
-	}
-}
-
-func must(f func() error) {
-	if err := f(); err != nil {
-		panic(err)
 	}
 }
