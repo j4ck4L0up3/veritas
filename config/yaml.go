@@ -42,7 +42,7 @@ func setYamlConfig() error {
 	}
 
 	if err := os.MkdirAll(path, 0o755); err != nil {
-		return fmt.Errorf("create config dir %s: %w", path, err)
+		return fmt.Errorf("error creating config dir %s: %w", path, err)
 	}
 
 	file := filepath.Join(path, "config.yaml")
@@ -52,7 +52,7 @@ func setYamlConfig() error {
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("create config file: %w", err)
+		return fmt.Errorf("error creating config file: %w", err)
 	}
 
 	defer func() {
@@ -62,7 +62,7 @@ func setYamlConfig() error {
 	}()
 
 	if _, err := f.WriteString(defaultYamlConfig); err != nil {
-		return fmt.Errorf("write config file: %w", err)
+		return fmt.Errorf("error writing to config file: %w", err)
 	}
 	return nil
 }
