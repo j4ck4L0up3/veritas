@@ -14,7 +14,7 @@
       "anyOf": [{ "format": "ipv4" }, { "format": "ipv6" }]
     },
     "port": {
-      "description": "Listen port, as integer, e.g. \"9001\"",
+      "description": "Listen port, as integer, e.g. 9001",
       "type": "integer",
       "minimum": 1
     },
@@ -22,6 +22,22 @@
       "description": "Upload lifetime in seconds",
       "type": "integer",
       "minimum": 1
+    },
+    "log_level": {
+      "description": "Level for logs at locations.logs, e.g. debug | info | warn | error | fatal",
+      "type": "string",
+      "oneOf": [
+        { "const": "debug" },
+        { "const": "info" },
+        { "const": "warn" },
+        { "const": "error" },
+        { "const": "fatal" }
+      ]
+    },
+    "log_format": {
+      "description": "Format for logs at locations.logs, e.g. text | json",
+      "type": "string",
+      "oneOf": [{ "const": "text" }, { "const": "json" }]
     },
     "locations": {
       "type": "object",

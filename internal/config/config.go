@@ -15,6 +15,8 @@ type Config struct {
 	IP        string    `yaml:"ip"`
 	Port      uint      `yaml:"port"`
 	UploadTTL string    `yaml:"upload_ttl"`
+	LogLevel  string    `yaml:"log_level"`
+	LogFormat string    `yaml:"log_format"`
 	Locations Locations `yaml:"locations"`
 }
 
@@ -84,6 +86,8 @@ const (
 	VERITAS_UPLOAD_TTL   = "VERITAS_UPLOAD_TTL"
 	VERITAS_IP           = "VERITAS_IP"
 	VERITAS_PORT         = "VERITAS_PORT"
+	VERITAS_LOG_LEVEL    = "VERITAS_LOG_LEVEL"
+	VERITAS_LOG_FORMAT   = "VERITAS_LOG_FORMAT"
 )
 
 func setOverrides() {
