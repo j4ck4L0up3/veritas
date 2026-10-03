@@ -31,6 +31,7 @@ log_format: "text"
 locations:
   db: "$HOME/.local/share/veritas"
   bin: "$HOME/.local/bin/veritas"
+  env: "$HOME/.local/share/veritas"
   logs: "$HOME/.local/share/veritas"
   blobs: "$HOME/.local/share/veritas/blobs"
   uploads: "$HOME/.local/share/veritas/uploads"

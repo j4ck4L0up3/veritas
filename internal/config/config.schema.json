@@ -9,7 +9,7 @@
   },
   "properties": {
     "ip": {
-      "description": "Listen address (IPv4 or IPv6)",
+      "description": "Listen address as a string, formatted as IPv4 | IPv6",
       "type": "string",
       "anyOf": [{ "format": "ipv4" }, { "format": "ipv6" }]
     },
@@ -42,11 +42,12 @@
     },
     "locations": {
       "type": "object",
-      "required": ["db", "bin", "logs", "blobs", "uploads", "service"],
+      "required": ["db", "bin", "env", "logs", "blobs", "uploads", "service"],
       "additionalProperties": false,
       "properties": {
         "db": { "$ref": "#/$defs/path" },
         "bin": { "$ref": "#/$defs/path" },
+        "env": { "$ref": "#/$defs/path" },
         "logs": { "$ref": "#/$defs/path" },
         "blobs": { "$ref": "#/$defs/path" },
         "uploads": { "$ref": "#/$defs/path" },

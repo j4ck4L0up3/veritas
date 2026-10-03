@@ -14,7 +14,7 @@ var config Config
 type Config struct {
 	IP        string    `yaml:"ip"`
 	Port      uint      `yaml:"port"`
-	UploadTTL string    `yaml:"upload_ttl"`
+	UploadTTL uint      `yaml:"upload_ttl"`
 	LogLevel  string    `yaml:"log_level"`
 	LogFormat string    `yaml:"log_format"`
 	Locations Locations `yaml:"locations"`
@@ -23,6 +23,7 @@ type Config struct {
 type Locations struct {
 	DbPath      string `yaml:"db"`
 	BinPath     string `yaml:"bin"`
+	EnvPath     string `yaml:"env"`
 	LogPath     string `yaml:"logs"`
 	BlobPath    string `yaml:"blobs"`
 	UploadPath  string `yaml:"uploads"`
@@ -44,7 +45,7 @@ func load() error {
 		return err
 	}
 
-	// validate yaml
+	// validate config file
 	schema, err := compileSchema()
 	if err != nil {
 		return err
@@ -60,8 +61,9 @@ func load() error {
 	}
 
 	// check for env path vars
-	config.Locations.BinPath = parseEnvPath(config.Locations.BinPath)
 	config.Locations.DbPath = parseEnvPath(config.Locations.DbPath)
+	config.Locations.BinPath = parseEnvPath(config.Locations.BinPath)
+	config.Locations.EnvPath = parseEnvPath(config.Locations.EnvPath)
 	config.Locations.LogPath = parseEnvPath(config.Locations.LogPath)
 	config.Locations.BlobPath = parseEnvPath(config.Locations.BlobPath)
 	config.Locations.UploadPath = parseEnvPath(config.Locations.UploadPath)
@@ -82,6 +84,7 @@ func must(f func() error) {
 const (
 	VERITAS_DB_PATH      = "VERITAS_DB_PATH"
 	VERITAS_BIN_PATH     = "VERITAS_BIN_PATH"
+	VERITAS_ENV_PATH     = "VERITAS_ENV_PATH"
 	VERITAS_LOG_PATH     = "VERITAS_LOG_PATH"
 	VERITAS_BLOB_PATH    = "VERITAS_BLOB_PATH"
 	VERITAS_UPLOAD_PATH  = "VERITAS_UPLOAD_PATH"
@@ -100,6 +103,9 @@ func setOverrides() {
 	if env := os.Getenv(VERITAS_BIN_PATH); env != "" {
 		config.Locations.BinPath = env
 	}
+	if env := os.Getenv(VERITAS_ENV_PATH); env != "" {
+		config.Locations.EnvPath = env
+	}
 	if env := os.Getenv(VERITAS_LOG_PATH); env != "" {
 		config.Locations.LogPath = env
 	}
@@ -112,9 +118,6 @@ func setOverrides() {
 	if env := os.Getenv(VERITAS_SERVICE_PATH); env != "" {
 		config.Locations.ServicePath = env
 	}
-	if env := os.Getenv(VERITAS_UPLOAD_TTL); env != "" {
-		config.UploadTTL = env
-	}
 	if env := os.Getenv(VERITAS_IP); env != "" {
 		config.IP = env
 	}
@@ -125,6 +128,14 @@ func setOverrides() {
 		}
 
 		config.Port = verifiedPort(port)
+	}
+	if env := os.Getenv(VERITAS_UPLOAD_TTL); env != "" {
+		ttl, err := strconv.Atoi(env)
+		if err != nil {
+			log.Fatalf("non-integer ttl assigned to VERITAS_UPLOAD_TTL: %v", err)
+		}
+
+		config.UploadTTL = uint(ttl)
 	}
 }
 

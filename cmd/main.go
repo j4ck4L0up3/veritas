@@ -15,9 +15,10 @@ var lgr logger.Logger
 var logFile *os.File
 
 func main() {
-	defer logFile.Close()
-	lgr.Print("Starting Veritas...")
-	lgr.Infof("Config loaded: %+v", cfg)
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func init() {
@@ -36,4 +37,17 @@ func init() {
 
 	logFile = f
 	lgr = logger.New(logFile, cfg.LogLevel, cfg.LogFormat)
+}
+
+func run() error {
+	defer func() {
+		if err := logFile.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error closing log file: %v", err)
+			os.Exit(1)
+		}
+	}()
+
+	lgr.Print("Starting Veritas...")
+	lgr.Infof("Config loaded: %+v", cfg)
+	return nil
 }
