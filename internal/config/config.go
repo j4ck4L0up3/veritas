@@ -57,6 +57,14 @@ func load() error {
 		return err
 	}
 
+	// check for env vars
+	config.Locations.BinPath = parseEnvPath(config.Locations.BinPath)
+	config.Locations.DbPath = parseEnvPath(config.Locations.DbPath)
+	config.Locations.LogPath = parseEnvPath(config.Locations.LogPath)
+	config.Locations.BlobPath = parseEnvPath(config.Locations.BlobPath)
+	config.Locations.UploadPath = parseEnvPath(config.Locations.UploadPath)
+	config.Locations.ServicePath = parseEnvPath(config.Locations.ServicePath)
+
 	return nil
 }
 

@@ -1,27 +1,24 @@
 package config
 
 import (
-	"charm.land/log/v2"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"charm.land/log/v2"
 )
 
-const defaultConfigPath = ".config/veritas"
+const defaultConfigPath = "$HOME/.config/veritas"
 
 // get config path from env if exists, otherwise use default
 func getConfigPath() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal("could not determine user home directory path")
-	}
-
 	if path := os.Getenv("VERITAS_CONFIG_PATH"); path != "" {
 		return path // user should provide absolute path
 	}
 
-	return filepath.Join(home, defaultConfigPath)
+	return parseEnvPath(defaultConfigPath)
 }
 
 const defaultYamlConfig = `
@@ -30,12 +27,12 @@ ip: "127.0.0.1"
 port: 9001
 upload_ttl: 86400 # in seconds; default = 24 hours
 locations:
-  db: ".local/share/veritas"
-  bin: ".local/bin/veritas"
-  logs: ".local/share/veritas"
-  blobs: ".local/share/veritas/blobs"
-  uploads: ".local/share/veritas/uploads"
-  service: ".config/systemd/user"
+  db: "$HOME/.local/share/veritas"
+  bin: "$HOME/.local/bin/veritas"
+  logs: "$HOME/.local/share/veritas"
+  blobs: "$HOME/.local/share/veritas/blobs"
+  uploads: "$HOME/.local/share/veritas/uploads"
+  service: "$HOME/.config/systemd/user"
 `
 
 // instantiate yaml config to config path if not exists
@@ -69,4 +66,20 @@ func setYamlConfig() error {
 		return fmt.Errorf("error writing to config file: %w", err)
 	}
 	return nil
+}
+
+func parseEnvPath(path string) string {
+	parts := strings.Split(path, "/")
+
+	for i := range parts {
+		if strings.HasPrefix(parts[i], "$") {
+			var ok bool
+			parts[i], ok = os.LookupEnv(strings.TrimPrefix(parts[i], "$"))
+			if !ok {
+				log.Fatalf("failed to expand %q to env", parts[i])
+			}
+		}
+	}
+
+	return filepath.Join(parts...)
 }
