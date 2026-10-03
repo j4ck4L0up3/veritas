@@ -1,6 +1,7 @@
 package config
 
 import (
+	"charm.land/log/v2"
 	"errors"
 	"fmt"
 	"os"
@@ -11,27 +12,30 @@ const defaultConfigPath = ".config/veritas"
 
 // get config path from env if exists, otherwise use default
 func getConfigPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("could not determine user home directory path")
+	}
+
 	if path := os.Getenv("VERITAS_CONFIG_PATH"); path != "" {
-		return path
+		return path // user should provide absolute path
 	}
 
-	if home := os.Getenv("HOME"); home != "" {
-		return fmt.Sprintf("%s/%s", home, defaultConfigPath)
-	}
-
-	return ""
+	return filepath.Join(home, defaultConfigPath)
 }
 
 const defaultYamlConfig = `
 ---
-  ip: "127.0.0.1"
-  port: ":9001"
-  locations:
-    db: "~/.local/share/veritas"
-    bin: "/usr/local/bin/veritas"
-    blobs: "~/.local/share/veritas/blobs"
-    uploads: "~/.local/share/veritas/uploads"
-  upload_ttl: 86400 # 24 hours
+ip: "127.0.0.1"
+port: 9001
+upload_ttl: 86400 # in seconds; default = 24 hours
+locations:
+  db: ".local/share/veritas"
+  bin: ".local/bin/veritas"
+  logs: ".local/share/veritas"
+  blobs: ".local/share/veritas/blobs"
+  uploads: ".local/share/veritas/uploads"
+  service: ".config/systemd/user"
 `
 
 // instantiate yaml config to config path if not exists
@@ -57,7 +61,7 @@ func setYamlConfig() error {
 
 	defer func() {
 		if err := f.Close(); err != nil {
-			panic(err)
+			log.Fatalf("unable to close config file: %v", err)
 		}
 	}()
 

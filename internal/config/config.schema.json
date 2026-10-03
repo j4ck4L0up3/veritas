@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "veritas config",
+  "type": "object",
+  "required": ["ip", "port", "upload_ttl", "locations"],
+  "additionalProperties": false,
+  "$defs": {
+    "path": { "type": "string", "minLength": 1 }
+  },
+  "properties": {
+    "ip": {
+      "description": "Listen address (IPv4 or IPv6)",
+      "type": "string",
+      "anyOf": [{ "format": "ipv4" }, { "format": "ipv6" }]
+    },
+    "port": {
+      "description": "Listen port, as integer, e.g. \"9001\"",
+      "type": "integer",
+      "minimum": 1
+    },
+    "upload_ttl": {
+      "description": "Upload lifetime in seconds",
+      "type": "integer",
+      "minimum": 1
+    },
+    "locations": {
+      "type": "object",
+      "required": ["db", "bin", "logs", "blobs", "uploads", "service"],
+      "additionalProperties": false,
+      "properties": {
+        "db": { "$ref": "#/$defs/path" },
+        "bin": { "$ref": "#/$defs/path" },
+        "logs": { "$ref": "#/$defs/path" },
+        "blobs": { "$ref": "#/$defs/path" },
+        "uploads": { "$ref": "#/$defs/path" },
+        "service": { "$ref": "#/$defs/path" }
+      }
+    }
+  }
+}
