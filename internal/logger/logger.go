@@ -15,6 +15,7 @@ type Logger interface {
 	Infof(format string, args ...any)
 	Warnf(format string, args ...any)
 	Errorf(format string, args ...any)
+	Printf(msg string, keyvals ...any)
 }
 
 func New(w io.Writer, level string, fmt string) Logger {

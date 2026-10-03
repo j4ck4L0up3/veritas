@@ -59,13 +59,16 @@ func load() error {
 		return err
 	}
 
-	// check for env vars
+	// check for env path vars
 	config.Locations.BinPath = parseEnvPath(config.Locations.BinPath)
 	config.Locations.DbPath = parseEnvPath(config.Locations.DbPath)
 	config.Locations.LogPath = parseEnvPath(config.Locations.LogPath)
 	config.Locations.BlobPath = parseEnvPath(config.Locations.BlobPath)
 	config.Locations.UploadPath = parseEnvPath(config.Locations.UploadPath)
 	config.Locations.ServicePath = parseEnvPath(config.Locations.ServicePath)
+
+	// verify port
+	config.Port = verifiedPort(int(config.Port))
 
 	return nil
 }
@@ -106,6 +109,9 @@ func setOverrides() {
 	if env := os.Getenv(VERITAS_UPLOAD_PATH); env != "" {
 		config.Locations.UploadPath = env
 	}
+	if env := os.Getenv(VERITAS_SERVICE_PATH); env != "" {
+		config.Locations.ServicePath = env
+	}
 	if env := os.Getenv(VERITAS_UPLOAD_TTL); env != "" {
 		config.UploadTTL = env
 	}
@@ -128,7 +134,7 @@ func verifiedPort(port int) uint {
 	}
 
 	if port < 1024 {
-		log.Warn("WARNING: port less than 1024, may conflict with existing services")
+		log.Warn("port less than 1024, may conflict with existing services")
 	}
 
 	return uint(port)
