@@ -6,13 +6,16 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/j4ck4L0up3/veritas/internal/cli"
 	"github.com/j4ck4L0up3/veritas/internal/config"
 	"github.com/j4ck4L0up3/veritas/internal/logger"
+	"github.com/spf13/cobra"
 )
 
 var cfg *config.Config
 var lgr logger.Logger
 var logFile *os.File
+var rootCmd *cobra.Command
 
 func main() {
 	if err := run(); err != nil {
@@ -37,6 +40,8 @@ func init() {
 
 	logFile = f
 	lgr = logger.New(logFile, cfg.LogLevel, cfg.LogFormat)
+
+	rootCmd = cli.NewCommand("0.0.1")
 }
 
 func run() error {
@@ -49,5 +54,10 @@ func run() error {
 
 	lgr.Print("Starting Veritas...")
 	lgr.Infof("Config loaded: %+v", cfg)
+
+	if err := rootCmd.Execute(); err != nil {
+		return err
+	}
+
 	return nil
 }

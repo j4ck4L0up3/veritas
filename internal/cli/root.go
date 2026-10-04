@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const helpMenu = `
+/*
 main command:
 veritas
 
@@ -25,22 +25,31 @@ subcommands:
 
 	subcommand flags:
 	--config {filepath}     provide a config file for the registry server instance, default: ~/.config/veritas/config.yaml
-`
+*/
 
 func NewCommand(version string) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "veritas",
 		Short: "veritas is a light-weight, self-hostable container registry server",
 		Long: fmt.Sprintf(
-			`veritas is a light-weight, self-hostable container registry server
-			Version: %s
-			`,
+			"veritas is a light-weight, self-hostable container registry server\nVersion: %s",
 			version,
 		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			v, err := cmd.Flags().GetBool("version")
+			if err != nil {
+				return err
+			}
+
+			if v {
+				fmt.Printf("Version: %s\n", version)
+			}
+
+			return nil
+		},
 	}
 
-	rootCmd.PersistentFlags().StringP("help", "h", helpMenu, "show help menu")
-	rootCmd.PersistentFlags().StringP("version", "v", version, "show version information")
+	rootCmd.PersistentFlags().BoolP("version", "v", false, "show version information")
 
 	return rootCmd
 }
