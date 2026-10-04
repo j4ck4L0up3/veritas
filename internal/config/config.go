@@ -98,28 +98,28 @@ const (
 
 func setOverrides() {
 	if env := os.Getenv(VERITAS_DB_PATH); env != "" {
-		config.Locations.DbPath = env
+		config.Locations.DbPath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_BIN_PATH); env != "" {
-		config.Locations.BinPath = env
+		config.Locations.BinPath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_ENV_PATH); env != "" {
-		config.Locations.EnvPath = env
+		config.Locations.EnvPath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_LOG_PATH); env != "" {
-		config.Locations.LogPath = env
+		config.Locations.LogPath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_BLOB_PATH); env != "" {
-		config.Locations.BlobPath = env
+		config.Locations.BlobPath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_UPLOAD_PATH); env != "" {
-		config.Locations.UploadPath = env
+		config.Locations.UploadPath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_SERVICE_PATH); env != "" {
-		config.Locations.ServicePath = env
+		config.Locations.ServicePath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_HOST); env != "" {
-		config.Host = env
+		config.Host = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_PORT); env != "" {
 		port, err := strconv.Atoi(env)
