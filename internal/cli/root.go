@@ -71,6 +71,7 @@ func SetupCommands(
 func getConfig(configPath string) *config.Config {
 	cfg := config.Load(configPath)
 
+	// setup paths
 	if err := os.MkdirAll(cfg.Locations.UploadPath, os.FileMode(0o700)); err != nil {
 		log.Fatal(fmt.Sprintf("Error creating uploads directory: %v", err))
 	}

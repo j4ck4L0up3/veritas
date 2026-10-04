@@ -3,22 +3,15 @@ package main
 import (
 	"context"
 	"database/sql"
-	// "errors"
 	"fmt"
 	"os"
-
-	// "path/filepath"
 
 	"charm.land/log/v2"
 	"github.com/j4ck4L0up3/veritas/db"
 	"github.com/j4ck4L0up3/veritas/internal/cli"
-	"github.com/spf13/cobra"
 )
 
-var (
-	rootCmd *cobra.Command
-	dbConn  *sql.DB
-)
+var dbConn *sql.DB
 
 func main() {
 	ctx := context.Background()
@@ -40,11 +33,10 @@ func init() {
 	}
 
 	dbConn = conn
-
-	rootCmd = cli.NewCommand("0.0.1")
 }
 
 func run(ctx context.Context) error {
+	rootCmd := cli.NewCommand("0.0.1")
 	cli.SetupCommands(rootCmd, ctx, dbConn)
 
 	if err := rootCmd.Execute(); err != nil {
