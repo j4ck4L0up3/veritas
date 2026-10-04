@@ -12,7 +12,7 @@ import (
 var config Config
 
 type Config struct {
-	IP        string    `yaml:"ip"`
+	Host      string    `yaml:"host"`
 	Port      uint      `yaml:"port"`
 	UploadTTL uint      `yaml:"upload_ttl"`
 	LogLevel  string    `yaml:"log_level"`
@@ -90,7 +90,7 @@ const (
 	VERITAS_UPLOAD_PATH  = "VERITAS_UPLOAD_PATH"
 	VERITAS_SERVICE_PATH = "VERITAS_SERVICE_PATH"
 	VERITAS_UPLOAD_TTL   = "VERITAS_UPLOAD_TTL"
-	VERITAS_IP           = "VERITAS_IP"
+	VERITAS_HOST         = "VERITAS_HOST"
 	VERITAS_PORT         = "VERITAS_PORT"
 	VERITAS_LOG_LEVEL    = "VERITAS_LOG_LEVEL"
 	VERITAS_LOG_FORMAT   = "VERITAS_LOG_FORMAT"
@@ -118,8 +118,8 @@ func setOverrides() {
 	if env := os.Getenv(VERITAS_SERVICE_PATH); env != "" {
 		config.Locations.ServicePath = env
 	}
-	if env := os.Getenv(VERITAS_IP); env != "" {
-		config.IP = env
+	if env := os.Getenv(VERITAS_HOST); env != "" {
+		config.Host = env
 	}
 	if env := os.Getenv(VERITAS_PORT); env != "" {
 		port, err := strconv.Atoi(env)

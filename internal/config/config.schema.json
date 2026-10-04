@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "veritas config",
   "type": "object",
-  "required": ["ip", "port", "upload_ttl", "locations"],
+  "required": ["host", "port", "upload_ttl", "locations"],
   "additionalProperties": false,
   "$defs": {
     "path": { "type": "string", "minLength": 1 }
   },
   "properties": {
-    "ip": {
+    "host": {
       "description": "Listen address as a string, formatted as IPv4 | IPv6",
       "type": "string",
       "anyOf": [{ "format": "ipv4" }, { "format": "ipv6" }]

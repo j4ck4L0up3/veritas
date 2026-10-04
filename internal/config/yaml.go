@@ -23,7 +23,7 @@ func getConfigPath() string {
 
 const defaultYamlConfig = `
 ---
-ip: "127.0.0.1"
+host: "127.0.0.1"
 port: 9001
 upload_ttl: 86400 # in seconds; default = 24 hours
 log_level: "info"
