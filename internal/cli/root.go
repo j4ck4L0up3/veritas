@@ -5,11 +5,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/j4ck4L0up3/veritas/internal/config"
-	"github.com/j4ck4L0up3/veritas/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -82,8 +80,4 @@ func getConfig(configPath string) *config.Config {
 	}
 
 	return cfg
-}
-
-func getLogger(w io.Writer, logLevel, logFormat string) logger.Logger {
-	return logger.New(w, logLevel, logFormat)
 }
