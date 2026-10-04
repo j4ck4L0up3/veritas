@@ -9,3 +9,5 @@ up target=default-db:
 down target=default-db:
   ~/go/bin/goose sqlite3 -dir ./db/migrations {{target}} down
 
+build:
+  go build -o ./veritas ./cmd/...

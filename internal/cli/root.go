@@ -1,7 +1,15 @@
 package cli
 
 import (
+	"charm.land/log/v2"
+	"context"
+	"database/sql"
 	"fmt"
+	"io"
+	"os"
+
+	"github.com/j4ck4L0up3/veritas/internal/config"
+	"github.com/j4ck4L0up3/veritas/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +32,7 @@ subcommands:
 	--version, -v           show version information
 
 	subcommand flags:
-	--config {filepath}     provide a config file for the registry server instance, default: ~/.config/veritas/config.yaml
+	--config, -c {filepath}  provide a config file for the registry server instance, default
 */
 
 func NewCommand(version string) *cobra.Command {
@@ -52,4 +60,30 @@ func NewCommand(version string) *cobra.Command {
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "show version information")
 
 	return rootCmd
+}
+
+func SetupCommands(
+	root *cobra.Command,
+	ctx context.Context,
+	dbConn *sql.DB,
+) {
+	root.AddCommand(newRunCommand(ctx, dbConn))
+}
+
+func getConfig(configPath string) *config.Config {
+	cfg := config.Load(configPath)
+
+	if err := os.MkdirAll(cfg.Locations.UploadPath, os.FileMode(0o700)); err != nil {
+		log.Fatal(fmt.Sprintf("Error creating uploads directory: %v", err))
+	}
+
+	if err := os.MkdirAll(cfg.Locations.BlobPath, os.FileMode(0o700)); err != nil {
+		log.Fatal(fmt.Sprintf("Error creating blobs directory: %v", err))
+	}
+
+	return cfg
+}
+
+func getLogger(w io.Writer, logLevel, logFormat string) logger.Logger {
+	return logger.New(w, logLevel, logFormat)
 }

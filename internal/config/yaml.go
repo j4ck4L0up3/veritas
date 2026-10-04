@@ -39,12 +39,7 @@ locations:
 `
 
 // instantiate yaml config to config path if not exists
-func setYamlConfig() error {
-	path := getConfigPath()
-	if path == "" {
-		return errors.New("no config path found")
-	}
-
+func setYamlConfig(path string) error {
 	if err := os.MkdirAll(path, 0o755); err != nil {
 		return fmt.Errorf("error creating config dir %s: %w", path, err)
 	}

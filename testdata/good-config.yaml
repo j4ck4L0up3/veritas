@@ -1,0 +1,14 @@
+---
+host: "127.0.0.1"
+port: 6969
+upload_ttl: 86400 # in seconds; default = 24 hours
+log_level: "debug"
+log_format: "json"
+locations:
+  db: "$HOME/.local/share/veritas"
+  bin: "$HOME/.local/bin/veritas"
+  env: "$HOME/.local/share/veritas"
+  logs: "$HOME/.local/share/veritas"
+  blobs: "$HOME/.local/share/veritas/blobs"
+  uploads: "$HOME/.local/share/veritas/uploads"
+  service: "$HOME/.config/systemd/user"

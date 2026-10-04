@@ -30,16 +30,26 @@ type Locations struct {
 	ServicePath string `yaml:"service"`
 }
 
-func Load() *Config {
-	must(load)
+func Load(cmdPath string) *Config {
+	var path string
+	if cmdPath == "" {
+		path = filepath.Join(getConfigPath(), "config.yaml")
+		if err := setYamlConfig(getConfigPath()); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		path = cmdPath
+	}
+
+	if err := load(path); err != nil {
+		log.Fatal(err)
+	}
+
 	setOverrides()
 	return &config
 }
 
-func load() error {
-	must(setYamlConfig)
-	path := filepath.Join(getConfigPath(), "config.yaml")
-
+func load(path string) error {
 	yamlBytes, err := os.ReadFile(path)
 	if err != nil {
 		return err
