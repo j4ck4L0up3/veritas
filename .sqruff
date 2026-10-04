@@ -1,0 +1,20 @@
+[sqruff]
+dialect = sqlite
+exclude_rules = LT02,layout.indent
+
+[sqruff:indentation]
+indent_unit = space
+tab_space_size = 2
+indented_joins = false
+
+[sqruff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqruff:rules:capitalisation.identifiers]
+capitalisation_policy = upper
+
+[sqruff:rules:capitalisation.functions]
+capitalisation_policy = upper
+
+[sqruff:rules:capitalisation.types]
+capitalisation_policy = upper
