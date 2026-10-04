@@ -53,6 +53,7 @@ func setYamlConfig() error {
 
 	f, err := os.OpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if errors.Is(err, os.ErrExist) {
+		log.Info("config file already exists, skipping creation")
 		return nil
 	}
 	if err != nil {
