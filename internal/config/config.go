@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -86,7 +87,14 @@ func load(path string) error {
 	config.Locations.ServicePath = parseEnvPath(config.Locations.ServicePath)
 
 	// verify port
-	config.Port = verifiedPort(int(config.Port))
+	validPort, err := verifiedPort(int(config.Port))
+	if errors.Is(err, ErrConflictingPort) {
+		log.Warn(err.Error())
+	} else if err != nil {
+		return err
+	}
+
+	config.Port = validPort
 
 	return nil
 }
@@ -138,7 +146,7 @@ func setOverrides() error {
 		}
 
 		validPort, err := verifiedPort(port)
-		if errors.Is(err, ConflictingPortError) {
+		if errors.Is(err, ErrConflictingPort) {
 			log.Warn(err.Error())
 		} else if err != nil {
 			return err
@@ -149,25 +157,25 @@ func setOverrides() error {
 	if env := os.Getenv(VERITAS_UPLOAD_TTL); env != "" {
 		ttl, err := strconv.Atoi(env)
 		if err != nil {
-			return errors.New(
-				fmt.Sprintf("non-integer ttl assigned to VERITAS_UPLOAD_TTL: %v", err),
-			)
+			return fmt.Errorf("non-integer ttl assigned to VERITAS_UPLOAD_TTL: %v", err)
 		}
 
 		config.UploadTTL = uint64(ttl)
 	}
+
+	return nil
 }
 
-var ConflictingPortError = errors.New("port less than 1024, may conflict with existing services")
-var InvalidPortError = errors.New("invalid port")
+var ErrConflictingPort = errors.New("port less than 1024, may conflict with existing services")
+var ErrInvalidPort = errors.New("invalid port")
 
 func verifiedPort(port int) (uint16, error) {
 	if port < 0 || port > 65535 {
-		return 0, InvalidPortError
+		return 0, ErrInvalidPort
 	}
 
 	if port < 1024 {
-		return uint16(port), ConflictingPortError
+		return uint16(port), ErrConflictingPort
 	}
 
 	return uint16(port), nil
