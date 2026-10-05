@@ -2,8 +2,8 @@ package cli
 
 import (
 	"context"
-	"database/sql"
 	"os"
+	"path/filepath"
 
 	"github.com/j4ck4L0up3/veritas/internal/logger"
 	"github.com/j4ck4L0up3/veritas/internal/server"
@@ -19,7 +19,8 @@ func newRunCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := getConfig(configPath)
 			lgr := logger.New(os.Stdout, cfg.LogLevel, cfg.LogFormat)
-			conn := getDB(cfg.Locations.DbPath)
+			dbPath := filepath.Join(cfg.Locations.DbPath, "veritas.db")
+			conn := getDB(dbPath)
 
 			srvHandler := server.NewServerHandler(lgr, cfg, conn)
 			srvr := server.New(cfg.Host, cfg.Port, srvHandler)
