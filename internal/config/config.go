@@ -13,8 +13,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var config Config
-
 type Config struct {
 	Host      string    `yaml:"host"`
 	Port      uint16    `yaml:"port"`
@@ -45,18 +43,19 @@ func Load(cmdPath string) (*Config, error) {
 		path = cmdPath
 	}
 
-	if err := load(path); err != nil {
+	var config Config
+	if err := load(path, &config); err != nil {
 		return nil, err
 	}
 
-	if err := setOverrides(); err != nil {
+	if err := setOverrides(&config); err != nil {
 		return nil, err
 	}
 
 	return &config, nil
 }
 
-func load(path string) error {
+func load(path string, config *Config) error {
 	yamlBytes, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -72,7 +71,7 @@ func load(path string) error {
 		return err
 	}
 
-	err = yaml.Unmarshal(yamlBytes, &config)
+	err = yaml.Unmarshal(yamlBytes, config)
 	if err != nil {
 		return err
 	}
@@ -114,7 +113,7 @@ const (
 	VERITAS_LOG_FORMAT   = "VERITAS_LOG_FORMAT"
 )
 
-func setOverrides() error {
+func setOverrides(config *Config) error {
 	if env := os.Getenv(VERITAS_DB_PATH); env != "" {
 		config.Locations.DbPath = parseEnvPath(env)
 	}
@@ -142,7 +141,7 @@ func setOverrides() error {
 	if env := os.Getenv(VERITAS_PORT); env != "" {
 		port, err := strconv.Atoi(env)
 		if err != nil {
-			log.Fatalf("non-integer port assigned to VERITAS_PORT: %v", err)
+			return fmt.Errorf("non-integer port assigned to VERITAS_PORT: %v", err)
 		}
 
 		validPort, err := verifiedPort(port)
