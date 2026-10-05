@@ -1,11 +1,41 @@
 version: "2"
 sql:
   - engine: "sqlite"
-    queries: "db/queries"
+    queries:
+      - "db/queries/blobs"
+      - "db/queries/index_manifests"
+      - "db/queries/manifest_blobs"
+      - "db/queries/manifests"
+      - "db/queries/tags"
+      - "db/queries/uploads"
     schema: "db/migrations"
     gen:
       go:
         package: "db"
         out: "db"
+        query_parameter_limit: 2
         emit_json_tags: true
         emit_result_struct_pointers: true
+        overrides:
+          - column: "blobs.size"
+            go_type: "uint64"
+          - column: "blobs.created_at"
+            go_type: "uint64"
+          - column: "manifests.size"
+            go_type: "uint64"
+          - column: "manifests.created_at"
+            go_type: "uint64"
+          - column: "tags.updated_at"
+            go_type: "uint64"
+          - column: "manifest_blobs.position"
+            go_type: "uint64"
+          - column: "index_manifests.position"
+            go_type: "uint64"
+          - column: "upload_sessions.uuid"
+            go_type: "github.com/google/uuid.UUID"
+          - column: "upload_sessions.bytes_received"
+            go_type: "uint64"
+          - column: "upload_sessions.created_at"
+            go_type: "uint64"
+          - column: "upload_sessions.expires_at"
+            go_type: "uint64"

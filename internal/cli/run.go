@@ -20,9 +20,9 @@ func newRunCommand(ctx context.Context) *cobra.Command {
 			cfg := getConfig(configPath)
 			lgr := logger.New(os.Stdout, cfg.LogLevel, cfg.LogFormat)
 			dbPath := filepath.Join(cfg.Locations.DbPath, "veritas.db")
-			conn := getDB(dbPath)
+			qry := getDB(dbPath)
 
-			srvHandler := server.NewServerHandler(lgr, cfg, conn)
+			srvHandler := server.NewServerHandler(lgr, cfg, qry)
 			srvr := server.New(cfg.Host, cfg.Port, srvHandler)
 
 			return server.Start(ctx, srvr)

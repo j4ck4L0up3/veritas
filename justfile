@@ -11,3 +11,6 @@ down target=default-db:
 
 build:
   go build -o ./veritas ./cmd/...
+
+gen:
+  sqlc generate

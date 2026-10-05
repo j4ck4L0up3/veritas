@@ -13,8 +13,8 @@ var config Config
 
 type Config struct {
 	Host      string    `yaml:"host"`
-	Port      uint      `yaml:"port"`
-	UploadTTL uint      `yaml:"upload_ttl"`
+	Port      uint16    `yaml:"port"`
+	UploadTTL uint64    `yaml:"upload_ttl"`
 	LogLevel  string    `yaml:"log_level"`
 	LogFormat string    `yaml:"log_format"`
 	Locations Locations `yaml:"locations"`
@@ -145,11 +145,11 @@ func setOverrides() {
 			log.Fatalf("non-integer ttl assigned to VERITAS_UPLOAD_TTL: %v", err)
 		}
 
-		config.UploadTTL = uint(ttl)
+		config.UploadTTL = uint64(ttl)
 	}
 }
 
-func verifiedPort(port int) uint {
+func verifiedPort(port int) uint16 {
 	if port < 0 || port > 65535 {
 		log.Fatal("invalid port")
 	}
@@ -158,5 +158,5 @@ func verifiedPort(port int) uint {
 		log.Warn("port less than 1024, may conflict with existing services")
 	}
 
-	return uint(port)
+	return uint16(port)
 }

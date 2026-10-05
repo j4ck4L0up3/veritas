@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net"
@@ -14,11 +13,12 @@ import (
 	"time"
 
 	"charm.land/log/v2"
+	"github.com/j4ck4L0up3/veritas/db"
 	"github.com/j4ck4L0up3/veritas/internal/config"
 	"github.com/j4ck4L0up3/veritas/internal/logger"
 )
 
-func New(host string, port uint, handler http.Handler) *http.Server {
+func New(host string, port uint16, handler http.Handler) *http.Server {
 	return &http.Server{
 		Addr:    net.JoinHostPort(host, strconv.FormatUint(uint64(port), 10)),
 		Handler: handler,
@@ -28,11 +28,11 @@ func New(host string, port uint, handler http.Handler) *http.Server {
 func NewServerHandler(
 	lgr logger.Logger,
 	cfg *config.Config,
-	dbConn *sql.DB,
+	qry *db.Queries,
 ) http.Handler {
 	mux := http.NewServeMux()
 
-	addRoutes(mux, lgr, cfg, dbConn)
+	addRoutes(mux, lgr, cfg, qry)
 
 	var handler http.Handler = mux
 

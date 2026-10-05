@@ -3,7 +3,6 @@ package cli
 import (
 	"charm.land/log/v2"
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 
@@ -83,7 +82,7 @@ func getConfig(configPath string) *config.Config {
 	return cfg
 }
 
-func getDB(dbPath string) *sql.DB {
+func getDB(dbPath string) *db.Queries {
 	dsn := fmt.Sprintf(
 		"file:%s?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000",
 		dbPath,
@@ -94,5 +93,7 @@ func getDB(dbPath string) *sql.DB {
 		log.Fatal(fmt.Sprintf("Error opening db: %v", err))
 	}
 
-	return conn
+	qry := db.New(conn)
+
+	return qry
 }
