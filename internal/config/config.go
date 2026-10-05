@@ -1,12 +1,15 @@
 package config
 
 import (
-	"charm.land/log/v2"
+	"errors"
 	"os"
 	"path/filepath"
 
-	"gopkg.in/yaml.v3"
+	"charm.land/log/v2"
+
 	"strconv"
+
+	"gopkg.in/yaml.v3"
 )
 
 var config Config
@@ -30,23 +33,26 @@ type Locations struct {
 	ServicePath string `yaml:"service"`
 }
 
-func Load(cmdPath string) *Config {
+func Load(cmdPath string) (*Config, error) {
 	var path string
 	if cmdPath == "" {
 		path = filepath.Join(getConfigPath(), "config.yaml")
 		if err := setYamlConfig(getConfigPath()); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 	} else {
 		path = cmdPath
 	}
 
 	if err := load(path); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	setOverrides()
-	return &config
+	if err := setOverrides(); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }
 
 func load(path string) error {
@@ -85,12 +91,6 @@ func load(path string) error {
 	return nil
 }
 
-func must(f func() error) {
-	if err := f(); err != nil {
-		log.Fatal(err)
-	}
-}
-
 const (
 	VERITAS_DB_PATH      = "VERITAS_DB_PATH"
 	VERITAS_BIN_PATH     = "VERITAS_BIN_PATH"
@@ -106,7 +106,7 @@ const (
 	VERITAS_LOG_FORMAT   = "VERITAS_LOG_FORMAT"
 )
 
-func setOverrides() {
+func setOverrides() error {
 	if env := os.Getenv(VERITAS_DB_PATH); env != "" {
 		config.Locations.DbPath = parseEnvPath(env)
 	}
@@ -137,26 +137,38 @@ func setOverrides() {
 			log.Fatalf("non-integer port assigned to VERITAS_PORT: %v", err)
 		}
 
-		config.Port = verifiedPort(port)
+		validPort, err := verifiedPort(port)
+		if errors.Is(err, ConflictingPortError) {
+			log.Warn(err.Error())
+		} else if err != nil {
+			return err
+		}
+
+		config.Port = validPort
 	}
 	if env := os.Getenv(VERITAS_UPLOAD_TTL); env != "" {
 		ttl, err := strconv.Atoi(env)
 		if err != nil {
-			log.Fatalf("non-integer ttl assigned to VERITAS_UPLOAD_TTL: %v", err)
+			return errors.New(
+				fmt.Sprintf("non-integer ttl assigned to VERITAS_UPLOAD_TTL: %v", err),
+			)
 		}
 
 		config.UploadTTL = uint64(ttl)
 	}
 }
 
-func verifiedPort(port int) uint16 {
+var ConflictingPortError = errors.New("port less than 1024, may conflict with existing services")
+var InvalidPortError = errors.New("invalid port")
+
+func verifiedPort(port int) (uint16, error) {
 	if port < 0 || port > 65535 {
-		log.Fatal("invalid port")
+		return 0, InvalidPortError
 	}
 
 	if port < 1024 {
-		log.Warn("port less than 1024, may conflict with existing services")
+		return uint16(port), ConflictingPortError
 	}
 
-	return uint16(port)
+	return uint16(port), nil
 }
