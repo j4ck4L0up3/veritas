@@ -29,7 +29,7 @@ func UploadInitiationHandler(
 				return
 			}
 
-			repo := r.PathValue("name")
+			repo := r.PathValue("repo")
 
 			filename := filepath.Join(cfg.Locations.UploadPath, id.String())
 			if _, err = os.OpenFile(
