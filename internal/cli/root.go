@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/j4ck4L0up3/veritas/db"
 	"github.com/j4ck4L0up3/veritas/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -63,9 +64,8 @@ func NewCommand(version string) *cobra.Command {
 func SetupCommands(
 	root *cobra.Command,
 	ctx context.Context,
-	dbConn *sql.DB,
 ) {
-	root.AddCommand(newRunCommand(ctx, dbConn))
+	root.AddCommand(newRunCommand(ctx))
 }
 
 func getConfig(configPath string) *config.Config {
@@ -81,4 +81,18 @@ func getConfig(configPath string) *config.Config {
 	}
 
 	return cfg
+}
+
+func getDB(dbPath string) *sql.DB {
+	dsn := fmt.Sprintf(
+		"file:%s?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000",
+		dbPath,
+	)
+
+	conn, err := db.RunMigrations(dsn)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error opening db: %v", err))
+	}
+
+	return conn
 }

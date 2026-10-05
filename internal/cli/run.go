@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newRunCommand(ctx context.Context, dbConn *sql.DB) *cobra.Command {
+func newRunCommand(ctx context.Context) *cobra.Command {
 	var configPath string
 	runCmd := &cobra.Command{
 		Use:   "run",
@@ -19,8 +19,9 @@ func newRunCommand(ctx context.Context, dbConn *sql.DB) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := getConfig(configPath)
 			lgr := logger.New(os.Stdout, cfg.LogLevel, cfg.LogFormat)
+			conn := getDB(cfg.Locations.DbPath)
 
-			srvHandler := server.NewServerHandler(lgr, cfg, dbConn)
+			srvHandler := server.NewServerHandler(lgr, cfg, conn)
 			srvr := server.New(cfg.Host, cfg.Port, srvHandler)
 
 			return server.Start(ctx, srvr)
