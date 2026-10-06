@@ -32,15 +32,15 @@ func UploadInitiationHandler(
 			repo := r.PathValue("repo")
 
 			filename := filepath.Join(cfg.Locations.UploadPath, id.String())
-			if _, err = os.OpenFile(
-				filename,
-				os.O_CREATE|os.O_EXCL,
-				0o600,
-			); !errors.Is(
+			f, err := os.OpenFile(filename, os.O_CREATE|os.O_EXCL, 0o600)
+			f.Sync() // write changes to disk instead of just OS cache
+			f.Close()
+
+			if err != nil && !errors.Is(
 				err,
 				os.ErrExist,
 			) {
-				lgr.Errorf("Failed to create upload file: %v", err)
+				lgr.Errorf("failed to create upload file: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -53,10 +53,10 @@ func UploadInitiationHandler(
 			}
 			err = qry.CreateUploadSession(r.Context(), params)
 			if err != nil {
-				lgr.Errorf("Could not create upload session in db: %v", err)
+				lgr.Errorf("could not create upload session in db: %v", err)
 
 				if err := os.Remove(filename); err != nil {
-					lgr.Errorf("Could not remove failed upload session file %s: %v", filename, err)
+					lgr.Errorf("could not remove failed upload session file %s: %v", filename, err)
 				}
 
 				w.WriteHeader(http.StatusInternalServerError)

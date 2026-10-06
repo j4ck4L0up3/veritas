@@ -17,7 +17,7 @@ const (
 	UNSUPPORTED           Code = "UNSUPPORTED"
 )
 
-var messages = map[Code]string{
+var Messages = map[Code]string{
 	BLOB_UNKNOWN:          "blob unknown to registry",
 	BLOB_UPLOAD_INVALID:   "blob upload invalid",
 	BLOB_UPLOAD_UNKNOWN:   "blob upload unknown to registry",
@@ -41,7 +41,7 @@ type errorBody struct {
 func NewError(code Code, message, detail string) *Error {
 	return &Error{
 		Code:    code,
-		Message: messages[code],
+		Message: Messages[code],
 		Detail:  detail,
 	}
 }
