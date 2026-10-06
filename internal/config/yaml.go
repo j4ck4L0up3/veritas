@@ -12,10 +12,9 @@ import (
 
 const defaultConfigPath = "$HOME/.config/veritas"
 
-// get config path from env if exists, otherwise use default
 func getConfigPath() string {
 	if path := os.Getenv("VERITAS_CONFIG_PATH"); path != "" {
-		return path // user should provide absolute path
+		return parseEnvPath(path)
 	}
 
 	return parseEnvPath(defaultConfigPath)
@@ -68,6 +67,11 @@ func setYamlConfig(path string) error {
 }
 
 func parseEnvPath(path string) string {
+	if !strings.Contains(path, "$") {
+		return path
+	}
+
+	prependSlash := path[0] == '/'
 	parts := strings.Split(path, "/")
 
 	for i := range parts {
@@ -75,9 +79,14 @@ func parseEnvPath(path string) string {
 			var ok bool
 			parts[i], ok = os.LookupEnv(strings.TrimPrefix(parts[i], "$"))
 			if !ok {
-				log.Fatalf("failed to expand %q to env", parts[i])
+				// load() attempts to read it and it will fail there with file not exists
+				return path
 			}
 		}
+	}
+
+	if prependSlash {
+		return "/" + filepath.Join(parts...)
 	}
 
 	return filepath.Join(parts...)
