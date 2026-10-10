@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -88,7 +90,27 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 					return
 				}
 
-				// start copying from offset, then update bytes_received
+				f, err := os.OpenFile(filepath.Join(), os.O_APPEND|io.SeekEnd, 0o600)
+				if err != nil {
+					lgr.Errorf("unable to open upload file: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				defer f.Close()
+
+				written, err := io.Copy(f, r.Body)
+				if err != nil {
+					lgr.Errorf("unable to copy bytes from request body to upload file: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				// update bytes_received
+				params := db.UpdateUploadSessionBytesReceivedParams{
+					Uuid:          id,
+					Repo:          repo,
+					BytesReceived: session.BytesReceived + uint64(written),
+				}
 			}
 		},
 	)
