@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -28,20 +29,22 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 				lgr.Error(detail, "uuid", rawId, "error", err)
 
 				respErr := helpers.NewError(
-					helpers.BLOB_UNKNOWN,
-					helpers.Messages[helpers.BLOB_UNKNOWN],
+					helpers.BLOB_UPLOAD_UNKNOWN,
+					helpers.Messages[helpers.BLOB_UPLOAD_UNKNOWN],
 					detail,
 				)
 
 				body, err := respErr.GetJSON()
 				if err != nil {
-					lgr.Errorf("could not marshal error json and attach body to request: %v", err)
+					lgr.Warnf("could not marshal error json and attach body to request: %v", err)
 					w.WriteHeader(http.StatusNotFound)
 					return
 				}
 
 				w.WriteHeader(http.StatusNotFound)
-				w.Write(body)
+				if _, err = w.Write(body); err != nil {
+					lgr.Warnf("failed to write response error: %v", err)
+				}
 			}
 
 			repo := r.PathValue("repo")
@@ -53,8 +56,8 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 				lgr.Error(detail, "error", err)
 
 				respErr := helpers.NewError(
-					helpers.BLOB_UNKNOWN,
-					helpers.Messages[helpers.BLOB_UNKNOWN],
+					helpers.BLOB_UPLOAD_UNKNOWN,
+					helpers.Messages[helpers.BLOB_UPLOAD_UNKNOWN],
 					detail,
 				)
 
@@ -66,7 +69,10 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 				}
 
 				w.WriteHeader(http.StatusNotFound)
-				w.Write(body)
+				if _, err := w.Write(body); err != nil {
+					lgr.Errorf("could not write error response: %v", err)
+				}
+				return
 			}
 
 			contentRange := r.Header.Get("Content-Range")
@@ -89,29 +95,69 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 					w.WriteHeader(http.StatusRequestedRangeNotSatisfiable)
 					return
 				}
-
-				f, err := os.OpenFile(filepath.Join(), os.O_APPEND|io.SeekEnd, 0o600)
-				if err != nil {
-					lgr.Errorf("unable to open upload file: %v", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				defer f.Close()
-
-				written, err := io.Copy(f, r.Body)
-				if err != nil {
-					lgr.Errorf("unable to copy bytes from request body to upload file: %v", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				// update bytes_received
-				params := db.UpdateUploadSessionBytesReceivedParams{
-					Uuid:          id,
-					Repo:          repo,
-					BytesReceived: session.BytesReceived + uint64(written),
-				}
 			}
+
+			filename := filepath.Join(cfg.Locations.UploadPath, id.String())
+			f, err := os.OpenFile(
+				filename,
+				os.O_APPEND|io.SeekEnd,
+				0o600,
+			)
+			if err != nil {
+				lgr.Errorf("unable to open upload file: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			defer func() {
+				if err := f.Close(); err != nil {
+					lgr.Warnf("closing upload file failed: %v", err)
+				}
+			}()
+
+			written, err := io.Copy(f, r.Body)
+			if err != nil {
+				lgr.Errorf("unable to copy bytes from request body to upload file: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			if err = f.Sync(); err != nil {
+				lgr.Warn(
+					"failed to sync upload file to disk; may crash on system off/crash",
+					"error",
+					err,
+				)
+			}
+
+			params := db.UpdateUploadSessionBytesReceivedParams{
+				Uuid:          id,
+				Repo:          repo,
+				BytesReceived: session.BytesReceived + uint64(written),
+			}
+
+			err = qry.UpdateUploadSessionBytesReceived(r.Context(), params)
+			if err != nil {
+				lgr.Errorf("unable to update bytes received: %v", err)
+
+				err := f.Truncate(int64(session.BytesReceived))
+				if err != nil {
+					lgr.Errorf(
+						"unable to truncate file to the bytes successfully received: %v",
+						err,
+					)
+				}
+
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			range_offset := session.BytesReceived + uint64(written) - 1
+			w.Header().Add("Location", "/v2/blobs/uploads/"+id.String())
+			w.Header().Add("Range", fmt.Sprintf("0-%d", range_offset))
+			w.Header().Add("Docker-Upload-UUID", id.String())
+
+			w.WriteHeader(http.StatusOK)
 		},
 	)
 }

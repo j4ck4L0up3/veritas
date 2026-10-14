@@ -33,9 +33,6 @@ func UploadInitiationHandler(
 
 			filename := filepath.Join(cfg.Locations.UploadPath, id.String())
 			f, err := os.OpenFile(filename, os.O_CREATE|os.O_EXCL, 0o600)
-			f.Sync() // write changes to disk instead of just OS cache
-			f.Close()
-
 			if err != nil && !errors.Is(
 				err,
 				os.ErrExist,
@@ -44,6 +41,21 @@ func UploadInitiationHandler(
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+
+			// write changes to disk instead of just OS cache
+			if err = f.Sync(); err != nil {
+				lgr.Warn(
+					"upload file not synced to disk and may not persist on system off/crash",
+					"error",
+					err,
+				)
+			}
+
+			defer func() {
+				if err := f.Close(); err != nil {
+					lgr.Warn("upload file not closed", "error", err)
+				}
+			}()
 
 			params := db.CreateUploadSessionParams{
 				Uuid:      id,

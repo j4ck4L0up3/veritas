@@ -21,5 +21,8 @@ func addRoutes(
 		"POST /v2/{repo}/blobs/uploads",
 		handlers.UploadInitiationHandler(lgr, qry, cfg),
 	)
-	mux.Handle("PUT /v2/{repo}/blobs/uploads/{id}", handlers.PatchBlobStreamHandler(lgr, qry, cfg))
+	mux.Handle(
+		"PATCH /v2/{repo}/blobs/uploads/{id}",
+		handlers.PatchBlobStreamHandler(lgr, qry, cfg),
+	)
 }
