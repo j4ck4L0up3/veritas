@@ -25,7 +25,6 @@ type Config struct {
 type Locations struct {
 	DbPath      string `yaml:"db"`
 	BinPath     string `yaml:"bin"`
-	EnvPath     string `yaml:"env"`
 	LogPath     string `yaml:"logs"`
 	BlobPath    string `yaml:"blobs"`
 	UploadPath  string `yaml:"uploads"`
@@ -79,7 +78,6 @@ func load(path string, config *Config) error {
 	// check for env path vars
 	config.Locations.DbPath = parseEnvPath(config.Locations.DbPath)
 	config.Locations.BinPath = parseEnvPath(config.Locations.BinPath)
-	config.Locations.EnvPath = parseEnvPath(config.Locations.EnvPath)
 	config.Locations.LogPath = parseEnvPath(config.Locations.LogPath)
 	config.Locations.BlobPath = parseEnvPath(config.Locations.BlobPath)
 	config.Locations.UploadPath = parseEnvPath(config.Locations.UploadPath)
@@ -101,7 +99,6 @@ func load(path string, config *Config) error {
 const (
 	VERITAS_DB_PATH      = "VERITAS_DB_PATH"
 	VERITAS_BIN_PATH     = "VERITAS_BIN_PATH"
-	VERITAS_ENV_PATH     = "VERITAS_ENV_PATH"
 	VERITAS_LOG_PATH     = "VERITAS_LOG_PATH"
 	VERITAS_BLOB_PATH    = "VERITAS_BLOB_PATH"
 	VERITAS_UPLOAD_PATH  = "VERITAS_UPLOAD_PATH"
@@ -119,9 +116,6 @@ func setOverrides(config *Config) error {
 	}
 	if env := os.Getenv(VERITAS_BIN_PATH); env != "" {
 		config.Locations.BinPath = parseEnvPath(env)
-	}
-	if env := os.Getenv(VERITAS_ENV_PATH); env != "" {
-		config.Locations.EnvPath = parseEnvPath(env)
 	}
 	if env := os.Getenv(VERITAS_LOG_PATH); env != "" {
 		config.Locations.LogPath = parseEnvPath(env)
