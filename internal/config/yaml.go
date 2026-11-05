@@ -5,40 +5,29 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"charm.land/log/v2"
 )
-
-const defaultConfigPath = "$HOME/.config/veritas"
-
-func getConfigPath() string {
-	if path := os.Getenv("VERITAS_CONFIG_PATH"); path != "" {
-		return parseEnvPath(path)
-	}
-
-	return parseEnvPath(defaultConfigPath)
-}
 
 const defaultYamlConfig = `
 ---
 host: "127.0.0.1"
 port: 9001
-upload_ttl: 86400 # in seconds; default = 24 hours
+upload_ttl: 86_400 # in seconds; default = 24 hours
 log_level: "info"
 log_format: "text"
 locations:
   db: "$HOME/.local/share/veritas"
   bin: "$HOME/.local/bin/veritas"
   env: "$HOME/.local/share/veritas"
-  logs: "$HOME/.local/share/veritas"
+	logs: "$HOME/.local/share/veritas" # optionally use "stdout" or "stderr"
   blobs: "$HOME/.local/share/veritas/blobs"
   uploads: "$HOME/.local/share/veritas/uploads"
   service: "$HOME/.config/systemd/user"
 `
 
 // instantiate yaml config to config path if not exists
-func setYamlConfig(path string) error {
+func SetYamlConfig(path string) error {
 	if err := os.MkdirAll(path, 0o755); err != nil {
 		return fmt.Errorf("error creating config dir %s: %w", path, err)
 	}
@@ -64,30 +53,4 @@ func setYamlConfig(path string) error {
 		return fmt.Errorf("error writing to config file: %w", err)
 	}
 	return nil
-}
-
-func parseEnvPath(path string) string {
-	if !strings.Contains(path, "$") {
-		return path
-	}
-
-	prependSlash := path[0] == '/'
-	parts := strings.Split(path, "/")
-
-	for i := range parts {
-		if strings.HasPrefix(parts[i], "$") {
-			var ok bool
-			parts[i], ok = os.LookupEnv(strings.TrimPrefix(parts[i], "$"))
-			if !ok {
-				// load() attempts to read it and it will fail there with file not exists
-				return path
-			}
-		}
-	}
-
-	if prependSlash {
-		return "/" + filepath.Join(parts...)
-	}
-
-	return filepath.Join(parts...)
 }

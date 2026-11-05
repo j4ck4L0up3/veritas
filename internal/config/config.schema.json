@@ -53,9 +53,17 @@
           "description": "Binary executable location",
           "$ref": "#/$defs/path"
         },
+        "env": {
+          "description": ".env file location, read only and used for service unit",
+          "$ref": "#/$defs/path"
+        },
         "logs": {
           "description": "Log file location, null = stdout",
-          "anyOf": [{ "$ref": "#/$defs/path" }, { "type": "null" }]
+          "anyOf": [
+            { "$ref": "#/$defs/path" },
+            { "const": "stdout" },
+            { "const": "stderr" }
+          ]
         },
         "blobs": {
           "description": "Image blobs file location",

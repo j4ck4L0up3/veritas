@@ -68,10 +68,7 @@ func SetupCommands(
 }
 
 func getConfig(configPath string) *config.Config {
-	cfg, err := config.Load(configPath)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error retrieving config: %v", err))
-	}
+	cfg := config.Load(configPath)
 
 	// setup paths
 	if err := os.MkdirAll(cfg.Locations.UploadPath, os.FileMode(0o700)); err != nil {

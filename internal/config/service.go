@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func setupService(envPath, binPath, servicePath, veritasOpts string) error {
+func setupService(envPath, binPath, servicePath string, veritasOpts ...string) error {
 	opts := []byte(fmt.Sprintf("VERITAS_OPTS=%s", veritasOpts))
 
 	if err := os.WriteFile(envPath, opts, 0o600); err != nil {
@@ -17,7 +17,7 @@ func setupService(envPath, binPath, servicePath, veritasOpts string) error {
 	serviceIni := fmt.Sprintf(
 		`
 		[Unit]
-		Description=Veritas Container Registry
+		Description=Veritas OCI Container Registry
 
 		[Service]
 		EnvironmentFile=%s

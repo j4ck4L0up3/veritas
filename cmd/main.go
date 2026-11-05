@@ -2,33 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
+	"charm.land/log/v2"
 	"github.com/j4ck4L0up3/veritas/internal/cli"
 )
 
 func main() {
-	mux := http.NewServeMux()
-	srvr := http.Server{
-		Addr:    "127.0.0.1:8080",
-		Handler: mux,
-	}
-
-	mux.Handle(
-		"POST /cool",
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte(`you're here!`))
-			fmt.Println(r.FormValue("my_query"))
-		}),
-	)
-
-	srvr.ListenAndServe()
-
-	/* ctx := context.Background()
+	ctx := context.Background()
 	if err := run(ctx); err != nil {
 		log.Fatalf("Error: %v\n", err)
-	} */
+	}
 }
 
 func run(ctx context.Context) error {
