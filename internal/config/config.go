@@ -17,6 +17,7 @@ func Load(flagConfig string) *Config {
 
 	if flagConfig == "" {
 		configFile := getConfigPath()
+		log.Debug("configFile", configFile)
 		err := builder.loadYamlConfigFile(configFile)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
@@ -31,11 +32,13 @@ func Load(flagConfig string) *Config {
 		log.Fatalf("failed to set environment overrides: %v", err)
 	}
 
-	if err := builder.loadYamlConfigFile(flagConfig); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			log.Warnf("config file does not exist at %s", flagConfig)
-		} else {
-			log.Fatalf("failed to load config file at %s: %v", flagConfig, err)
+	if flagConfig != "" {
+		if err := builder.loadYamlConfigFile(flagConfig); err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				log.Warnf("config file does not exist at %s", flagConfig)
+			} else {
+				log.Fatalf("failed to load config file at %s: %v", flagConfig, err)
+			}
 		}
 	}
 
