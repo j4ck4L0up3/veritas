@@ -67,10 +67,10 @@ func SetupCommands(
 	root.AddCommand(newRunCommand(ctx))
 }
 
-func getConfig(configPath string) *config.Config {
-	cfg := config.Load(configPath)
+func getConfig(flagPath string) *config.Config {
+	cfg := config.Load(flagPath)
 
-	// setup paths
+	// setup upload/blob paths
 	if err := os.MkdirAll(cfg.Locations.UploadPath, os.FileMode(0o700)); err != nil {
 		log.Fatal(fmt.Sprintf("Error creating uploads directory: %v", err))
 	}

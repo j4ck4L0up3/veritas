@@ -17,13 +17,13 @@ upload_ttl: 86_400 # in seconds; default = 24 hours
 log_level: "info"
 log_format: "text"
 locations:
-  db: "$HOME/.local/share/veritas"
+  db: "$HOME/.local/share/veritas/veritas.db"
   bin: "$HOME/.local/bin/veritas"
-  env: "$HOME/.local/share/veritas"
-	logs: "$HOME/.local/share/veritas" # optionally use "stdout" or "stderr"
+  env: "$HOME/.local/share/veritas/veritas.env"
+	logs: "$HOME/.local/share/veritas/veritas.log" # optionally use "stdout" or "stderr"
   blobs: "$HOME/.local/share/veritas/blobs"
   uploads: "$HOME/.local/share/veritas/uploads"
-  service: "$HOME/.config/systemd/user"
+  service: "$HOME/.config/systemd/user/veritas.service"
 `
 
 // instantiate yaml config to config path if not exists
