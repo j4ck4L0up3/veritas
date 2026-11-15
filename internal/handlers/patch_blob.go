@@ -7,8 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/j4ck4L0up3/veritas/db"
 	"github.com/j4ck4L0up3/veritas/internal/config"
 	"github.com/j4ck4L0up3/veritas/internal/helpers"
@@ -43,17 +44,16 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 
 				w.WriteHeader(http.StatusNotFound)
 				if _, err = w.Write(body); err != nil {
-					lgr.Warnf("failed to write response error: %v", err)
+					lgr.Warnf("failed to write error response: %v", err)
 				}
+				return
 			}
 
 			repo := r.PathValue("repo")
-
 			session, err := qry.GetUploadSession(r.Context(), id, repo)
 			if err != nil {
-				detail := "error when attempting to retrieve upload session"
-
-				lgr.Error(detail, "error", err)
+				detail := "could not find upload session from id and repo"
+				lgr.Error(detail, "uuid", id, "repo", repo, "error", err)
 
 				respErr := helpers.NewError(
 					helpers.BLOB_UPLOAD_UNKNOWN,
@@ -77,34 +77,16 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 
 			contentRange := r.Header.Get("Content-Range")
 			if contentRange != "" {
-				offset, err := strconv.Atoi(contentRange)
-				if err != nil {
-					lgr.Debugf("Content-Range from request: %s", contentRange)
-					w.WriteHeader(http.StatusRequestedRangeNotSatisfiable)
-					return
-				}
-
-				if uint64(offset) != session.BytesReceived {
-					lgr.Debug(
-						"offset received does not equal stored bytes_received",
-						"offset",
-						offset,
-						"bytes_received",
-						session.BytesReceived,
-					)
+				valid := isValidContentRange(contentRange, session.BytesReceived, lgr)
+				if !valid {
 					w.WriteHeader(http.StatusRequestedRangeNotSatisfiable)
 					return
 				}
 			}
 
-			filename := filepath.Join(cfg.Locations.UploadPath, id.String())
-			f, err := os.OpenFile(
-				filename,
-				os.O_APPEND|io.SeekEnd,
-				0o600,
-			)
-			if err != nil {
-				lgr.Errorf("unable to open upload file: %v", err)
+			uploadPath := filepath.Join(cfg.Locations.UploadPath, id.String())
+			written, f, ok := appendUploadBytes(uploadPath, r.Body, lgr)
+			if !ok {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -115,25 +97,10 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 				}
 			}()
 
-			written, err := io.Copy(f, r.Body)
-			if err != nil {
-				lgr.Errorf("unable to copy bytes from request body to upload file: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			if err = f.Sync(); err != nil {
-				lgr.Warn(
-					"failed to sync upload file to disk; may crash on system off/crash",
-					"error",
-					err,
-				)
-			}
-
 			params := db.UpdateUploadSessionBytesReceivedParams{
 				Uuid:          id,
 				Repo:          repo,
-				BytesReceived: session.BytesReceived + uint64(written),
+				BytesReceived: session.BytesReceived + written,
 			}
 
 			err = qry.UpdateUploadSessionBytesReceived(r.Context(), params)
