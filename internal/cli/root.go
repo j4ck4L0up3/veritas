@@ -70,7 +70,10 @@ func SetupCommands(
 func getConfig(flagPath string) *config.Config {
 	cfg := config.Load(flagPath)
 
-	// setup upload/blob paths
+	if err := os.MkdirAll(cfg.Locations.DbPath, os.FileMode(0o700)); err != nil {
+		log.Fatal(fmt.Sprintf("Error creating database directory: %v", err))
+	}
+
 	if err := os.MkdirAll(cfg.Locations.UploadPath, os.FileMode(0o700)); err != nil {
 		log.Fatal(fmt.Sprintf("Error creating uploads directory: %v", err))
 	}

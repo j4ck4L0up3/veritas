@@ -3,7 +3,9 @@ package config
 import (
 	"charm.land/log/v2"
 	"errors"
+	"github.com/j4ck4L0up3/veritas/internal/logger"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -14,6 +16,7 @@ type Config struct {
 func Load(flagConfig string) *Config {
 	var config *Config
 	builder := newConfigBuilder()
+	log.Debug("config flag", flagConfig)
 
 	if flagConfig == "" {
 		configFile := getConfigPath()
@@ -45,4 +48,45 @@ func Load(flagConfig string) *Config {
 	config = builder.build()
 
 	return config
+}
+
+func (cfg *Config) InitLogger(path string) logger.Logger {
+	var lgr logger.Logger
+	var logPath string
+
+	switch path {
+	case "stdout":
+		lgr = logger.New(os.Stdout, cfg.LogLevel, cfg.LogFormat)
+		return lgr
+	case "stderr":
+		lgr = logger.New(os.Stderr, cfg.LogLevel, cfg.LogFormat)
+		return lgr
+	case "":
+		switch cfg.Locations.LogPath {
+		case "stdout":
+			lgr = logger.New(os.Stdout, cfg.LogLevel, cfg.LogFormat)
+			return lgr
+		case "stderr":
+			lgr = logger.New(os.Stderr, cfg.LogLevel, cfg.LogFormat)
+			return lgr
+		default:
+			logPath = filepath.Join(cfg.Locations.LogPath, "veritas.log")
+		}
+	default:
+		logPath = path
+	}
+
+	logFile, err := os.OpenFile(
+		logPath,
+		os.O_WRONLY|os.O_CREATE,
+		0o200,
+	)
+
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Fatalf("something went wrong while initializing logger from log file: %s", err)
+	}
+
+	lgr = logger.New(logFile, cfg.LogLevel, cfg.LogFormat)
+
+	return lgr
 }

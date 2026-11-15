@@ -2,7 +2,6 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "veritas config",
   "type": "object",
-  "required": ["host", "port", "upload_ttl", "locations"],
   "additionalProperties": false,
   "$defs": {
     "path": { "type": "string", "minLength": 1 }
@@ -42,7 +41,6 @@
     },
     "locations": {
       "type": "object",
-      "required": ["db", "bin", "env", "logs", "blobs", "uploads", "service"],
       "additionalProperties": false,
       "properties": {
         "db": {
