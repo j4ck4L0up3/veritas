@@ -52,7 +52,7 @@ type appendUploadBytesParams struct {
 
 // appends PATCH/PUT upload bytes to the end of the upload path
 // logs errors and returns range_offset and ok flag
-func appendUploadBytes(p appendUploadBytesParams) (uin64, bool) {
+func appendUploadBytes(p appendUploadBytesParams) (uint64, bool) {
 	f, err := os.OpenFile(
 		p.uploadPath,
 		os.O_APPEND|io.SeekEnd,

@@ -2,12 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 	"uuid"
 
 	"github.com/j4ck4L0up3/veritas/db"
