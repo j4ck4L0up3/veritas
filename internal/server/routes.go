@@ -27,6 +27,6 @@ func addRoutes(
 	)
 	mux.Handle(
 		"PUT /v2/{repo}/blobs/uploads/{id}",
-		handlers.PutBlobStreamHandler(),
+		handlers.PutBlobStreamHandler(lgr, qry, cfg),
 	)
 }

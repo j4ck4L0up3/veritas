@@ -29,7 +29,8 @@ func newRunCommand(ctx context.Context) *cobra.Command {
 			if logPath != "" {
 				lgr = initLogger(cfg, logPath)
 			} else {
-				lgr = initLogger(cfg, cfg.Locations.LogPath)
+				path := filepath.Join(cfg.Locations.LogPath, "veritas.log")
+				lgr = initLogger(cfg, path)
 			}
 
 			dbPath := filepath.Join(cfg.Locations.DbPath, "veritas.db")
