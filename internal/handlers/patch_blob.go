@@ -85,43 +85,25 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 			}
 
 			uploadPath := filepath.Join(cfg.Locations.UploadPath, id.String())
-			written, f, ok := appendUploadBytes(uploadPath, r.Body, lgr)
+			params := appendUploadBytesParams{
+				uploadPath:    uploadPath,
+				id:            id,
+				repo:          repo,
+				bytesReceived: session.BytesReceived,
+				body:          r.Body,
+				ctx:           r.Context(),
+				lgr:           lgr,
+				qry:           qry,
+			}
+
+			rangeOffset, ok := appendUploadBytes(params)
 			if !ok {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			defer func() {
-				if err := f.Close(); err != nil {
-					lgr.Warnf("closing upload file failed: %v", err)
-				}
-			}()
-
-			params := db.UpdateUploadSessionBytesReceivedParams{
-				Uuid:          id,
-				Repo:          repo,
-				BytesReceived: session.BytesReceived + written,
-			}
-
-			err = qry.UpdateUploadSessionBytesReceived(r.Context(), params)
-			if err != nil {
-				lgr.Errorf("unable to update bytes received: %v", err)
-
-				err := f.Truncate(int64(session.BytesReceived))
-				if err != nil {
-					lgr.Errorf(
-						"unable to truncate file to the bytes successfully received: %v",
-						err,
-					)
-				}
-
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			range_offset := session.BytesReceived + uint64(written) - 1
 			w.Header().Add("Location", "/v2/blobs/uploads/"+id.String())
-			w.Header().Add("Range", fmt.Sprintf("0-%d", range_offset))
+			w.Header().Add("Range", fmt.Sprintf("0-%d", rangeOffset))
 			w.Header().Add("Docker-Upload-UUID", id.String())
 
 			w.WriteHeader(http.StatusOK)
