@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"io"
 	"os"
 	"strconv"
@@ -11,6 +13,8 @@ import (
 	"github.com/j4ck4L0up3/veritas/db"
 	"github.com/j4ck4L0up3/veritas/internal/logger"
 )
+
+const supportedDigestHash = "sha256"
 
 // checks that Content-Range header is valid
 // logs errors and returns false if not
@@ -106,4 +110,44 @@ func appendUploadBytes(p appendUploadBytesParams) (uin64, bool) {
 }
 
 // checks the validity of the digest by comparing against stored upload bytes
-func isValidDigest()
+// logs errors and returns readonly upload file and ok flag
+func isValidDigest(uploadPath, digest string, lgr logger.Logger) (error, bool) {
+	digestParts := strings.Split(digest, ":")
+	if len(digestParts) != 2 {
+		lgr.Warnf("client digest is unsupported: %s", digest)
+		return nil, false
+	}
+
+	hashType := digestParts[0]
+	givenDigest := digestParts[1]
+
+	if hashType != supportedDigestHash {
+		lgr.Warnf("client digest hash type is unsupported: %s", hashType)
+		return nil, false
+	}
+
+	f, err := os.Open(uploadPath)
+	if err != nil {
+		lgr.Errorf("unable to open upload file: &v", err)
+		return err, false
+	}
+
+	defer func() {
+		if err := f.Close(); err != nil {
+			lgr.Warnf("closing upload file failed: %v", err)
+		}
+	}()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		lgr.Errorf("unable to compute hash for uploaded bytes: %v", err)
+		return err, false
+	}
+
+	expectedDigest := hex.EncodeToString(h.Sum(nil))
+	if givenDigest != expectedDigest {
+		return nil, false
+	}
+
+	return nil, true
+}
