@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 	"uuid"
 
 	"github.com/j4ck4L0up3/veritas/db"
@@ -211,6 +212,24 @@ func PutBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Config
 					"path",
 					blobPath,
 				)
+			}
+
+			blobParams := db.CreateBlobParams{
+				Digest:    digest,
+				Size:      session.BytesReceived,
+				CreatedAt: uint64(time.Now().Unix()),
+			}
+
+			err = qry.CreateBlob(r.Context(), blobParams)
+			if err != nil {
+				lgr.Errorf("unable to create blob row: %v", err)
+
+				if err := os.Remove(blobPath); err != nil {
+					lgr.Errorf("unable to clean up orphaned blob file: %v", err)
+				}
+
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 
 			w.Header().Add("Location", fmt.Sprintf("/v2/%s/blobs/%s", repo, digest))
