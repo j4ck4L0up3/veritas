@@ -102,7 +102,7 @@ func PatchBlobStreamHandler(lgr logger.Logger, qry *db.Queries, cfg *config.Conf
 				return
 			}
 
-			w.Header().Add("Location", "/v2/blobs/uploads/"+id.String())
+			w.Header().Add("Location", fmt.Sprintf("/v2/%s/blobs/uploads/%s", repo, id.String()))
 			w.Header().Add("Range", fmt.Sprintf("0-%d", rangeOffset))
 			w.Header().Add("Docker-Upload-UUID", id.String())
 
