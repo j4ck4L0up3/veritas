@@ -32,7 +32,7 @@ sql:
           - column: "index_manifests.position"
             go_type: "uint64"
           - column: "upload_sessions.uuid"
-            go_type: "github.com/google/uuid.UUID"
+            go_type: "uuid.UUID"
           - column: "upload_sessions.bytes_received"
             go_type: "uint64"
           - column: "upload_sessions.created_at"

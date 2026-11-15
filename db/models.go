@@ -5,7 +5,7 @@
 package db
 
 import (
-	"github.com/google/uuid"
+	"uuid"
 )
 
 type Blob struct {

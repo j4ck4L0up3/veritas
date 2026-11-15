@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/j4ck4L0up3/veritas/db"
 	"github.com/j4ck4L0up3/veritas/internal/config"
 	"github.com/j4ck4L0up3/veritas/internal/logger"
@@ -22,13 +22,7 @@ func UploadInitiationHandler(
 		func(w http.ResponseWriter, r *http.Request) {
 			lgr.Info("Initiating blob upload...")
 
-			id, err := uuid.NewV7()
-			if err != nil {
-				lgr.Errorf("Failed to generated UUID: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
+			id := uuid.NewV7()
 			repo := r.PathValue("repo")
 
 			filename := filepath.Join(cfg.Locations.UploadPath, id.String())

@@ -4,7 +4,6 @@ go 1.27.1
 
 require (
 	charm.land/log/v2 v2.0.1
-	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/pressly/goose/v3 v3.28.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
