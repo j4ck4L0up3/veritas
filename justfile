@@ -13,4 +13,4 @@ build:
   go build -o ./veritas ./cmd/...
 
 gen:
-  sqlc generate
+  ~/go/bin/sqlc generate
